@@ -17,7 +17,7 @@ public class CharacterControllerBehaviour : MonoBehaviour, ICanPickupLegBonus
         this.gameObject.transform.position += new Vector3(0, 2, 0);
         this.gameObject.transform.localScale *= new Vector2(1, 2);
         //jump twice as high!
-        this.m_Jump = 30;
+        this.m_Jump = 90;
         //consumeTheBonus
         return true;
     }
@@ -57,10 +57,10 @@ public class CharacterControllerBehaviour : MonoBehaviour, ICanPickupLegBonus
         }
 
         var timeInJump = m_JumpUntil - Time.time;
-        if (timeInJump > 0 && Input.GetKey(KeyCode.UpArrow))
+        if (timeInJump > 0)
         {
             //jumping;
-            this.m_RigidBody.velocity = new Vector2(this.m_RigidBody.velocity.x, m_Jump*timeInJump);
+            this.m_RigidBody.velocity = new Vector2(this.m_RigidBody.velocity.x, m_Jump*timeInJump*timeInJump);
         }
         else
         {
