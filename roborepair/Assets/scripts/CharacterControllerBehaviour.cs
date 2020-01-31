@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CharacterControllerBehaviour : MonoBehaviour, ICanPickupLegBonus
+public class CharacterControllerBehaviour : MonoBehaviour, ICanPickupLegBonus, ICanClimbRopeBehaviour
 {
     int m_Acceleration = 10;
     float m_Jump = 0;
@@ -11,6 +11,7 @@ public class CharacterControllerBehaviour : MonoBehaviour, ICanPickupLegBonus
     public bool m_OnGround;
     public TriggerCollisionDetector m_LegsDetector;
     private float m_JumpUntil;
+    private bool m_OnRope;
 
     public bool OnLegBonus(LegBonusBehavior legBonusBehavior)
     {
@@ -25,10 +26,16 @@ public class CharacterControllerBehaviour : MonoBehaviour, ICanPickupLegBonus
     // Start is called before the first frame update
     void Start()
     {
-        Physics2D.gravity = new Vector3(0, -30, 0);
+        //Physics2D.gravity = new Vector3(0, -30, 0);
         m_RigidBody = this.GetComponent<Rigidbody2D>();
+        this.m_RigidBody.gravityScale = 0;
     }
 
+    private void FixedUpdate()
+    {
+        m_OnGround = false;
+        m_OnRope = false;
+    }
 
 
     // Update is called once per frame
@@ -51,28 +58,47 @@ public class CharacterControllerBehaviour : MonoBehaviour, ICanPickupLegBonus
         }
 
         var jumpDuration = 0.5f;
-        if (m_OnGround && Input.GetKeyDown(KeyCode.UpArrow))
+        if (m_OnGround && !m_OnRope && Input.GetKeyDown(KeyCode.UpArrow))
         {
             m_JumpUntil = Time.time + jumpDuration;
         }
 
         var timeInJump = m_JumpUntil - Time.time;
-        if (timeInJump > 0)
+        var jumping = timeInJump > 0;
+        if (jumping)
         {
             //jumping;
-            this.m_RigidBody.velocity = new Vector2(this.m_RigidBody.velocity.x, m_Jump*timeInJump*timeInJump);
+            this.m_RigidBody.velocity = new Vector2(this.m_RigidBody.velocity.x, m_Jump * timeInJump * timeInJump);
         }
-        else
-        {
-            if (!m_OnGround)
-            {
-                this.m_RigidBody.velocity = new Vector2(this.m_RigidBody.velocity.x, -20);
-            }
 
+        if (!jumping && !m_OnGround && !m_OnRope)
+        {
+            //fall down    
+            this.m_RigidBody.velocity = new Vector2(this.m_RigidBody.velocity.x, -20);
+        }
+
+        if (m_OnRope)
+        {
+            if (Input.GetKey(KeyCode.UpArrow))
+            {
+                //climb
+                var climbingSpeed = 6;
+                this.m_RigidBody.velocity = new Vector2(this.m_RigidBody.velocity.x, climbingSpeed);
+            }
+            else
+            {
+                //stay on rope
+                this.m_RigidBody.velocity = new Vector2(this.m_RigidBody.velocity.x, 0);
+            }
         }
 
         this.m_RigidBody.isKinematic = false;
-        //Debug.Log("onGround " + m_OnGround);
-        m_OnGround = false;
+        Debug.Log("onRope " + m_OnRope);
+
+    }
+
+    public void OnRope(RopeBehaviour ropeBehaviour)
+    {
+        m_OnRope = true;
     }
 }
